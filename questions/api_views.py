@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from answers.selectors import get_answer_by_id
 from core.permissions import IsOwnerOrReadOnly
 from .selectors import get_question_by_id
 from .serializers import *
@@ -49,3 +50,12 @@ class QuestionUpdateView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(QuestionDetailSerializer(instance=question).data)
+
+class AcceptAnswerView(APIView):
+    permission_classes = [IsOwnerOrReadOnly]
+    def post(self,request,question_id,answer_id):
+        question =get_question_by_id(qid=question_id)
+        self.check_object_permissions(request,question)
+        answer =get_answer_by_id(answer_id=answer_id)
+        QuestionService.accept_answer(question=question,answer=answer,accepted_by=request.user)
+        return Response({'detail':'Answer accepted'})
