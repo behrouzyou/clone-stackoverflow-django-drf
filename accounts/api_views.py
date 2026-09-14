@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import *
 from .models import User
 from rest_framework import status
@@ -10,7 +11,9 @@ from .selectors import *
 from .services import *
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
+from .throttlers import RegisterThrottle, ProfileThrottle
 class UserRegisterView(APIView):
+    throttle_classes = [RegisterThrottle]
     def post(self,request):
         serializer =UserRegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -19,6 +22,7 @@ class UserRegisterView(APIView):
         return Response(UserRegisterSerializer(user).data,status=status.HTTP_201_CREATED)
 
 class UserProfileView(APIView):
+    throttle_classes = [ProfileThrottle]
     permission_classes = [IsAuthenticated]
     def get(self,request):
         serializer =UserSerializer(request.user)
@@ -98,3 +102,6 @@ class ResetPasswordView(APIView):
         user.set_password(serializer.validated_data['new_password'])
         user.save()
         return Response({'message': 'password change sauccessfully'})
+
+class UserLoginView(TokenObtainPairView):
+    serializer_class = UserLoginSerializer

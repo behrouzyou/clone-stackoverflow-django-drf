@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from questions.serializers import QuestionListSerializer
 from .models import User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     questions = serializers.SerializerMethodField()
@@ -39,3 +40,12 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class UserLoginSerializer(TokenObtainPairSerializer):
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token["user_id"] = user.id
+        token["email"] = user.email
+        return token

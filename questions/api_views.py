@@ -2,16 +2,18 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from answers.selectors import get_answer_by_id
 from core.permissions import IsOwnerOrReadOnly
 from .selectors import get_question_by_id
 from .serializers import *
 from .models import *
 from .services import QuestionService
+from drf_spectacular.utils import extend_schema
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 
 class AllQuestionsView(APIView):
+    serializer_class =QuestionListSerializer
     def get(self,request):
         questions =Questions.objects.all()
         serialized_data=QuestionListSerializer(instance=questions,many=True)
@@ -24,6 +26,7 @@ class QuestionDetailView(APIView):
         QuestionService.increment_views(question=question)
         return Response(serializer_data.data,status=status.HTTP_200_OK)
 
+@extend_schema(request=QuestionCreateSerializer, responses={200:QuestionDetailSerializer})
 class QuestionCreateView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self,request):
