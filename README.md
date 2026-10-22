@@ -31,3 +31,6 @@ The URL configuration exposes:
 - `/schema/redoc/`
 
 The exact API routes are defined in each app's URL configuration.
+
+## Security note
+The current `drf/settings.py` still contains a hard-coded Django secret key. Replace it with a private `DJANGO_SECRET_KEY` environment variable and rotate the old value before using this project outside local development.
